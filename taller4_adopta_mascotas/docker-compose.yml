@@ -1,0 +1,36 @@
+services:
+  reverse-proxy:
+    build: ./reverse-proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - api
+
+  frontend:
+    build: ./frontend
+    expose:
+      - "80"
+
+  api:
+    build: ./api
+    env_file:
+      - .env
+    depends_on:
+      - database
+    expose:
+      - "8000"
+
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mascotas_db}
+      POSTGRES_USER: ${POSTGRES_USER:-usuario}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clave_local}
+    volumes:
+      - datos_mascotas:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+volumes:
+  datos_mascotas:

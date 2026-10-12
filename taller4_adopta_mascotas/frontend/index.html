@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adopta una Mascota</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f7f4; color: #24352a; }
+    header { background: #28664b; color: white; padding: 28px 18px; text-align: center; }
+    header h1 { margin: 0 0 8px; }
+    main { max-width: 1000px; margin: 25px auto; padding: 0 16px; }
+    .intro { background: white; padding: 18px; border-radius: 12px; margin-bottom: 18px; }
+    .filters { margin: 16px 0; }
+    select { padding: 10px; border-radius: 8px; border: 1px solid #aaa; }
+    #lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 2px 7px #00000012; }
+    .emoji { font-size: 38px; }
+    .card h2 { margin: 8px 0; }
+    button { background: #28664b; color: white; border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    button:hover { background: #194a35; }
+    #mensaje { padding: 10px 0; }
+    footer { text-align: center; padding: 22px; color: #59665d; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐾 Adopta una Mascota</h1>
+    <p>Un hogar puede cambiar una vida</p>
+  </header>
+  <main>
+    <section class="intro">
+      <h2>Encuentra a tu nuevo amigo</h2>
+      <p>Estas mascotas están buscando una familia. Revisa su información y conoce un poco más sobre ellas.</p>
+    </section>
+
+    <div class="filters">
+      <label for="categoria">Filtrar por animal: </label>
+      <select id="categoria" onchange="cargarMascotas()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+
+    <p id="mensaje">Cargando mascotas...</p>
+    <section id="lista"></section>
+  </main>
+  <footer>Proyecto educativo · Hecho para practicar con VS Code</footer>
+
+  <script>
+    async function cargarCategorias() {
+      try {
+        const respuesta = await fetch("/api/categorias");
+        const categorias = await respuesta.json();
+        const selector = document.getElementById("categoria");
+        categorias.forEach(function(categoria) {
+          const opcion = document.createElement("option");
+          opcion.value = categoria.id;
+          opcion.textContent = categoria.nombre;
+          selector.appendChild(opcion);
+        });
+      } catch (error) {
+        document.getElementById("mensaje").textContent = "No se pudieron cargar las categorías.";
+      }
+    }
+
+    async function cargarMascotas() {
+      const categoria = document.getElementById("categoria").value;
+      let direccion = "/api/mascotas";
+      if (categoria !== "") {
+        direccion += "?categoria_id=" + categoria;
+      }
+
+      try {
+        const respuesta = await fetch(direccion);
+        const mascotas = await respuesta.json();
+        const lista = document.getElementById("lista");
+        const mensaje = document.getElementById("mensaje");
+        lista.innerHTML = "";
+
+        if (mascotas.length === 0) {
+          mensaje.textContent = "No hay mascotas en esta categoría.";
+          return;
+        }
+
+        mensaje.textContent = "Mascotas disponibles: " + mascotas.length;
+        mascotas.forEach(function(mascota) {
+          const tarjeta = document.createElement("article");
+          tarjeta.className = "card";
+          let emoji = "🐾";
+          if (mascota.categoria.nombre === "Perros") emoji = "🐶";
+          if (mascota.categoria.nombre === "Gatos") emoji = "🐱";
+          tarjeta.innerHTML =
+            '<div class="emoji">' + emoji + '</div>' +
+            '<h2>' + mascota.nombre + '</h2>' +
+            '<p><strong>Tipo:</strong> ' + mascota.categoria.nombre + '</p>' +
+            '<p><strong>Edad:</strong> ' + mascota.edad + '</p>' +
+            '<button onclick="verDetalles(' + mascota.id + ')">Ver detalles</button>';
+          lista.appendChild(tarjeta);
+        });
+      } catch (error) {
+        document.getElementById("mensaje").textContent = "No se pudo conectar con la API. Revisa que Docker esté funcionando.";
+      }
+    }
+
+    async function verDetalles(id) {
+      try {
+        const respuesta = await fetch("/api/mascotas/" + id);
+        const mascota = await respuesta.json();
+        alert(
+          "Nombre: " + mascota.nombre +
+          "\nTipo: " + mascota.categoria.nombre +
+          "\nEdad: " + mascota.edad +
+          "\nDescripción: " + mascota.descripcion
+        );
+      } catch (error) {
+        alert("No se pudieron cargar los detalles.");
+      }
+    }
+
+    cargarCategorias().then(cargarMascotas);
+  </script>
+</body>
+</html>
