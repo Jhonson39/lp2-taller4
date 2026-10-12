@@ -72,5 +72,3 @@ Volver a construir si haces cambios:
 docker compose up -d --build
 ```
 
-## Nota para el taller
-La interfaz está hecha con HTML, CSS y JavaScript básico para que sea fácil de entender y editar en VS Code. Si el profesor exige que el diseño visual se haga en v0.app, se puede usar esta página como versión inicial y recrear el diseño allí.
